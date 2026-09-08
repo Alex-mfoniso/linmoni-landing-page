@@ -1,0 +1,36 @@
+/* Product motion activates as each section enters the viewport. */
+section[id]{scroll-margin-top:90px}
+:is(a,button):focus-visible{outline:2px solid #6a941e;outline-offset:5px}
+.hero-visual:not(.motion-visible) :is(.app-phone,.lime-disc,.secure-chip,.tap-chip),.security-wrap:not(.motion-visible) :is(.rings,.rings div,.protected,.monitored){animation-play-state:paused}
+.step:after,.receive-icon,.home-tx:first-of-type>strong{animation:none}
+.hero-copy>*{animation:none}
+.home-balance:after{animation-iteration-count:1}
+.navlinks>a:not(.btn),.foot-col a{position:relative}
+.navlinks>a:not(.btn):after,.foot-col a:after{content:'';position:absolute;left:0;bottom:-6px;width:24px;height:2px;background:var(--lime);transform:scaleX(0);transform-origin:left;transition:transform .25s ease}
+.navlinks>a:hover:after,.navlinks>a:focus-visible:after,.foot-col a:hover:after{transform:scaleX(1)}
+.navlinks.open{animation:menuReveal .24s ease both}
+.btn{position:relative;overflow:hidden;isolation:isolate}
+.btn:before{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 20%,#ffffff20 45%,transparent 70%);translate:-140% 0;pointer-events:none}
+.btn:hover:before{animation:buttonLight .65s ease}
+.feature :is(.mini-send,.mini-alert,.secure-visual){transition:translate .4s ease,box-shadow .4s ease}
+.feature:hover :is(.mini-send,.mini-alert,.secure-visual){translate:0 -5px;box-shadow:0 16px 32px #11111112}
+.flow i{overflow:hidden;height:3px;background:var(--line)}
+.flow i:after{content:'';inset:0;width:35%;background:var(--lime);transform:translateX(-110%)}
+.motion-visible .flow i:after{animation:transferTravel 3.6s ease-in-out infinite}
+.motion-visible .flow i:nth-of-type(2):after{animation-delay:.65s}
+.dashboard.motion-entered .tx{animation:activityEnter .65s both}
+.dashboard.motion-entered .tx:nth-child(2){animation-delay:.15s}
+.dashboard.motion-entered .tx:nth-child(3){animation-delay:.3s}
+.dashboard.motion-entered .tx:nth-child(4){animation-delay:.45s}
+.dashboard.motion-entered .balance{animation:activityEnter .7s both}
+.split.motion-entered :is(.receive-card,.send-card){animation:receiptEnter .85s both cubic-bezier(.22,1,.36,1)}
+.quote.motion-entered>div{animation:activityEnter .6s .15s both}
+.faq-item>div{transition:grid-template-rows .35s cubic-bezier(.22,1,.36,1)}
+.faq-item>div>p{transition:opacity .25s ease,padding .35s ease;opacity:0}
+.faq-item.active>div>p{opacity:1}
+@keyframes activityEnter{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+@keyframes receiptEnter{from{opacity:0;translate:0 25px;rotate:-2deg}to{opacity:1;translate:0 0;rotate:0deg}}
+@keyframes transferTravel{0%,15%{transform:translateX(-110%)}55%,100%{transform:translateX(400%)}}
+@keyframes menuReveal{from{opacity:0;translate:0 -8px}to{opacity:1;translate:0 0}}
+@keyframes buttonLight{to{translate:140% 0}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.received{transform:none!important}}

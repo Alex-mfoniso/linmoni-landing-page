@@ -1,15 +1,64 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { motion } from 'framer-motion';
+import { motion, MotionConfig, useReducedMotion } from 'framer-motion';
 import { ArrowRight, ArrowUpRight, Check, ChevronDown, CircleCheck, Clock3, CreditCard, Eye, Fingerprint, Globe2, LockKeyhole, Menu, Plus, ReceiptText, Send, ShieldCheck, Sparkles, UserRound, WalletCards, X, Zap } from 'lucide-react';
 import './styles.css';
+import './motion.css';
+import './responsive.css';
+import { WaitlistModal } from './waitlist';
+import { Logo } from './logo';
 
 const A='/signup';
-const Reveal=({children,className=''}:{children:React.ReactNode,className?:string})=><motion.div className={className} initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true,margin:'-80px'}} transition={{duration:.65,ease:[.22,1,.36,1]}}>{children}</motion.div>;
-const Logo=()=> <a className="logo" href="#top" aria-label="Linmoni home"><span>lin</span><i>moni</i><b>•</b></a>;
+function Reveal({children,className=''}:{children:React.ReactNode,className?:string}) {
+  const reduced = useReducedMotion();
+  return <motion.div className={className} initial={reduced ? false : {opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.12}} transition={{duration:.7,ease:[.22,1,.36,1]}}>{children}</motion.div>;
+}
+
+function MotionDirector() {
+  React.useEffect(() => {
+    const targets = document.querySelectorAll<HTMLElement>('.feature,.step,.dashboard,.split,.security-wrap,.quote,.hero-visual');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        entry.target.classList.toggle('motion-visible', entry.isIntersecting);
+        if(entry.isIntersecting) entry.target.classList.add('motion-entered');
+      });
+    }, {threshold:.15});
+    targets.forEach((target) => observer.observe(target));
+    const product = document.querySelector('.product');
+    if(product) product.id = 'product';
+    return () => observer.disconnect();
+  }, []);
+  return null;
+}
 const Btn=({children,light=false,arrow=true,href=A}:{children:React.ReactNode,light?:boolean,arrow?:boolean,href?:string})=><a href={href} className={`btn ${light?'light':''}`}>{children}{arrow&&<ArrowUpRight size={17}/>}</a>;
 
-function Navbar(){const [open,setOpen]=React.useState(false);const [scrolled,setScrolled]=React.useState(false);React.useEffect(()=>{const onScroll=()=>setScrolled(window.scrollY>18);onScroll();window.addEventListener('scroll',onScroll,{passive:true});return()=>window.removeEventListener('scroll',onScroll)},[]);return <nav className={scrolled?'scrolled':''}><Logo/><div className={`navlinks ${open?'open':''}`}><a href="#features">Features</a><a href="#works">How it works</a><a href="#security">Security</a><a href="#faq">FAQs</a><a href="/login">Log in</a><Btn>Get started</Btn></div><button className="menu" onClick={()=>setOpen(!open)} aria-label="Toggle menu">{open?<X/>:<Menu/>}</button></nav>}
+function Navbar(){
+  const [open,setOpen]=React.useState(false);
+  const [waitlistOpen,setWaitlistOpen]=React.useState(false);
+  const [scrolled,setScrolled]=React.useState(false);
+  const toggle=React.useRef<HTMLButtonElement>(null);
+  const nav=React.useRef<HTMLElement>(null);
+  React.useEffect(()=>{
+    const onScroll=()=>setScrolled(window.scrollY>18);
+    const onResize=()=>{if(window.innerWidth>900)setOpen(false)};
+    onScroll();window.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('resize',onResize);
+    return()=>{window.removeEventListener('scroll',onScroll);window.removeEventListener('resize',onResize)};
+  },[]);
+  React.useEffect(()=>{
+    if(!open)return;
+    const close=(event:KeyboardEvent)=>{if(event.key==='Escape'){setOpen(false);toggle.current?.focus()}};
+    const outside=(event:PointerEvent)=>{if(!nav.current?.contains(event.target as Node))setOpen(false)};
+    window.addEventListener('keydown',close);window.addEventListener('pointerdown',outside);
+    return()=>{window.removeEventListener('keydown',close);window.removeEventListener('pointerdown',outside)};
+  },[open]);
+  return <><nav ref={nav} aria-label="Main navigation" className={`${scrolled?'scrolled':''} ${open?'menu-open':''}`} onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setOpen(false)}}>
+    <div onClick={()=>setOpen(false)}><Logo/></div>
+    <div id="main-navigation" className={`navlinks ${open?'open':''}`} onClick={event=>{if((event.target as HTMLElement).closest('a'))setOpen(false)}}>
+      <a href="#features">Features</a><a href="#works">How it works</a><a href="#security">Security</a><a href="#faq">FAQs</a><button type="button" className="btn" aria-haspopup="dialog" onClick={()=>{setOpen(false);setWaitlistOpen(true)}}>Join the waitlist <ArrowUpRight size={17}/></button>
+    </div>
+    <button ref={toggle} className="menu" onClick={()=>setOpen(value=>!value)} aria-expanded={open} aria-controls="main-navigation" aria-label={open?'Close navigation':'Open navigation'}>{open?<X/>:<Menu/>}</button>
+  </nav><WaitlistModal open={waitlistOpen} onClose={()=>{setWaitlistOpen(false);if(window.innerWidth<=900)toggle.current?.focus()}}/></>;
+}
 
 function SendCard(){return <div className="send-card"><div className="card-top"><button>←</button><b>Send money</b><span>•••</span></div><div className="recipient"><span className="avatar">JD</span><div><small>Sending to</small><strong>John Doe</strong></div><CircleCheck size={20}/></div><small className="center">Enter amount</small><div className="amount"><sup>₦</sup>50,000<span>.00</span></div><div className="available"><span>Available balance</span><b>₦245,800</b></div><button className="confirm">Continue <ArrowRight size={17}/></button></div>}
 
@@ -32,4 +81,4 @@ const faqs=[['What is Linmoni?','Linmoni is a digital money platform that makes 
 function FAQ(){const [active,setActive]=React.useState(0);return <section id="faq" className="faq section"><Reveal className="section-head"><span className="label">Need to know</span><h2>Frequently asked<br/>questions.</h2></Reveal><Reveal className="faq-list">{faqs.map((f,i)=><div className={`faq-item ${active===i?'active':''}`} key={f[0]}><button onClick={()=>setActive(active===i?-1:i)}><span>{f[0]}</span><ChevronDown/></button><div><p>{f[1]}</p></div></div>)}</Reveal></section>}
 function Footer(){return <><section className="final"><Reveal><span className="label lime">Ready when you are</span><h2>Money should<br/>just <em>move.</em></h2><p>Send and receive money with a simpler experience built for the way you live today.</p><Btn light>Get started with Linmoni</Btn><small>No complicated setup. Just simple money movement.</small></Reveal><div className="orbit one"></div><div className="orbit two"></div></section><footer><div className="footer-brand"><Logo/><p>Simple, secure money movement.</p></div>{[['Product','Send money','Receive money','Features','Security'],['Company','About','Careers','Contact','Blog'],['Legal','Privacy','Terms','Security']].map(c=><div className="foot-col" key={c[0]}><b>{c[0]}</b>{c.slice(1).map(x=><a href="#" key={x}>{x}</a>)}</div>)}<div className="footer-bottom"><span>© 2026 Linmoni. All rights reserved.</span><div><a href="#">X</a><a href="#">Instagram</a><a href="#">LinkedIn</a></div></div></footer></>}
 function App(){return <><Hero/><TrustStrip/><Features/><How/><Product/><SendReceive/><Security/><Compare/><Testimonials/><FAQ/><Footer/></>};
-createRoot(document.getElementById('root')!).render(<React.StrictMode><App/></React.StrictMode>);
+createRoot(document.getElementById('root')!).render(<React.StrictMode><MotionConfig reducedMotion="user"><App/><MotionDirector/></MotionConfig></React.StrictMode>);
